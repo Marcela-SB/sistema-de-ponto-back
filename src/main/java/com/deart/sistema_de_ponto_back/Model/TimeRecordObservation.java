@@ -1,6 +1,6 @@
 package com.deart.sistema_de_ponto_back.Model;
 
-import java.util.UUID;
+import com.deart.sistema_de_ponto_back.Model.Abstract.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,12 +19,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TimeRecordObservation {
+public class TimeRecordObservation extends BaseEntity {
     @Id
     private Long id;
-
-    @Column(unique = true, nullable = false, updatable = false, columnDefinition = "BINARY(16)")
-    private UUID externalId = UUID.randomUUID();
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId

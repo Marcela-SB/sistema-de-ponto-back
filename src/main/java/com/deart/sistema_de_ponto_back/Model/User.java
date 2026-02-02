@@ -1,8 +1,7 @@
 package com.deart.sistema_de_ponto_back.Model;
 
-import java.util.UUID;
-
 import com.deart.sistema_de_ponto_back.Enum.UserRole;
+import com.deart.sistema_de_ponto_back.Model.Abstract.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +13,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,13 +23,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class User {
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(unique = true, nullable = false, updatable = false, columnDefinition = "BINARY(16)")
-    private UUID externalId = UUID.randomUUID();
 
     @Column(nullable = false, length = 150)
     private String name;
@@ -52,13 +47,4 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
-
-
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.externalId == null) {
-            this.externalId = UUID.randomUUID();
-        }
-    }
 }
