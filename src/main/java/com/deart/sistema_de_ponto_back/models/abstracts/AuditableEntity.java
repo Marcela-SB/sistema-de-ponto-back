@@ -1,8 +1,8 @@
-package com.deart.sistema_de_ponto_back.Model.Abstract;
+package com.deart.sistema_de_ponto_back.models.abstracts;
 
 import java.time.LocalDateTime;
 
-import com.deart.sistema_de_ponto_back.Model.User;
+import com.deart.sistema_de_ponto_back.models.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;

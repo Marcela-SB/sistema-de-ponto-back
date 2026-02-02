@@ -1,4 +1,4 @@
-package com.deart.sistema_de_ponto_back.Model;
+package com.deart.sistema_de_ponto_back.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

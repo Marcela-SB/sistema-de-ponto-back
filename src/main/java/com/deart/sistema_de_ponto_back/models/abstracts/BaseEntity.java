@@ -1,4 +1,4 @@
-package com.deart.sistema_de_ponto_back.Model.Abstract;
+package com.deart.sistema_de_ponto_back.models.abstracts;
 
 import java.util.UUID;
 

@@ -1,7 +1,7 @@
-package com.deart.sistema_de_ponto_back.Model;
+package com.deart.sistema_de_ponto_back.models;
 
-import com.deart.sistema_de_ponto_back.Enum.UserRole;
-import com.deart.sistema_de_ponto_back.Model.Abstract.BaseEntity;
+import com.deart.sistema_de_ponto_back.enums.UserRole;
+import com.deart.sistema_de_ponto_back.models.abstracts.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

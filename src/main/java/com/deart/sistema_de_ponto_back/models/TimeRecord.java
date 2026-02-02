@@ -1,4 +1,4 @@
-package com.deart.sistema_de_ponto_back.Model;
+package com.deart.sistema_de_ponto_back.models;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -6,7 +6,7 @@ import java.time.LocalTime;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
-import com.deart.sistema_de_ponto_back.Model.Abstract.AuditableEntity;
+import com.deart.sistema_de_ponto_back.models.abstracts.AuditableEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

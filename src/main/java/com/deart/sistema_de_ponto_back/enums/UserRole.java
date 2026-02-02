@@ -1,4 +1,4 @@
-package com.deart.sistema_de_ponto_back.Enum;
+package com.deart.sistema_de_ponto_back.enums;
 
 public enum UserRole {
     ADMIN,
