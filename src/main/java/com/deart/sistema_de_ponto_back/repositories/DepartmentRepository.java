@@ -1,0 +1,11 @@
+package com.deart.sistema_de_ponto_back.repositories;
+
+import java.util.Optional;
+import com.deart.sistema_de_ponto_back.models.Department;
+
+public interface DepartmentRepository extends BaseRepository<Department, Long>{
+    
+    Optional<Department> findByName(String name);
+
+    boolean existsByName(String name);
+}
