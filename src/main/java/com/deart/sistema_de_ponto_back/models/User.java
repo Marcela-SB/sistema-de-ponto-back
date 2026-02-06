@@ -31,6 +31,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 150)
     private String name;
 
+    @Column(nullable = false, unique = true, length = 11)
+    private String cpf;
+
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
@@ -47,4 +50,9 @@ public class User extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = true)
     private Department department;
+
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf.replaceAll("\\D", "");
+    }
 }
