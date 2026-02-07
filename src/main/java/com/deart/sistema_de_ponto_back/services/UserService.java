@@ -10,7 +10,6 @@ import com.deart.sistema_de_ponto_back.dtos.requests.UserLoginRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserUpdatePasswordRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserUpdateRequest;
 import com.deart.sistema_de_ponto_back.dtos.responses.LoginResponse;
-import com.deart.sistema_de_ponto_back.dtos.responses.UserResponse;
 import com.deart.sistema_de_ponto_back.exceptions.domain.DepartmentNotFoundException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InvalidCredentialsException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InvalidPasswordException;
@@ -39,37 +38,30 @@ public class UserService {
         this.mapper = mapper;
     }
 
-    public List<UserResponse> findAll(){
-        return userRepository.findAll()
-            .stream().map(mapper::toResponse)
-            .toList();
+    public List<User> findAll(){
+        return userRepository.findAll();
     }
 
-    public List<UserResponse> findAllActives(){
-        return userRepository.findAllByActiveTrue()
-            .stream().map(mapper::toResponse)
-            .toList();  
+    public List<User> findAllActives(){
+        return userRepository.findAllByActiveTrue();  
     }
 
     // adicionar verificação se está no local presencialmente
-    public LoginResponse login(UserLoginRequest loginRequest){
+    public User login(UserLoginRequest loginRequest){
         User user = userRepository.findByCpf(loginRequest.cpf())
             .orElseThrow(UserNotFoundException::new);
 
         // encriptar antes de comparar
-        if ( !(user.getPassword().equals(loginRequest.password()))) {
+        if (!(user.getPassword().equals(loginRequest.password()))) {
             throw new InvalidCredentialsException();
         }
 
-        // String token = tokenService.generateToken(user);
-        // Long expiresIn = tokenService.getExpirationTime(); 
-
-        return mapper.toLoginResponse(null, null, null);
+        return user;
     }
 
     // Verificar ROLE
     @Transactional
-    public UserResponse create(UserCreateRequest createRequest){
+    public User create(UserCreateRequest createRequest){
         if (userRepository.existsByCpf(createRequest.cpf())) {
             throw new UserCpfAlreadyExistsException(createRequest.cpf());
         }
@@ -83,12 +75,12 @@ public class UserService {
         user.setDepartment(department);
         user.setPassword("senha_padrao");     //ENCRIPTAR
         
-        return mapper.toResponse(userRepository.save(user));
+        return userRepository.save(user);
     }
 
     // verificar ROLE (bolsista não pode mudar seu ROLE)
     @Transactional
-    public UserResponse update(UUID externalId, UserUpdateRequest updateRequest){
+    public User update(UUID externalId, UserUpdateRequest updateRequest){
         User user = userRepository.findByExternalIdAndActiveTrue(externalId)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -107,11 +99,12 @@ public class UserService {
             user.setDepartment(dept);
         }
 
-        return mapper.toResponse(userRepository.save(user));
+        return userRepository.save(user);
     }
 
     // adicionar +1 passo de segurança
     // ativação por email, código por email, etc...
+    // mudar retorno
     @Transactional
     public void updateEmail(UUID externalId, String newEmail) {
         User user = userRepository.findByExternalId(externalId)
@@ -127,13 +120,14 @@ public class UserService {
 
     // adicionar  +1 passo de segurança
     // deve estar logado e ser o usuário ou o ADMIN
+    // mudar retorno
     @Transactional
     public void updatePassword(UUID externalId, UserUpdatePasswordRequest request) {
         User user = userRepository.findByExternalIdAndActiveTrue(externalId)
                 .orElseThrow(UserNotFoundException::new);
 
         // encriptar antes de comparar
-        if (request.currentPassword().equals(user.getPassword())) {
+        if (!request.currentPassword().equals(user.getPassword())) {
             throw new InvalidPasswordException();
         }
 
@@ -141,6 +135,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // mudar retorno
     @Transactional
     public void updateCpf(UUID externalId, String newCpf) {
         User user = userRepository.findByExternalIdAndActiveTrue(externalId)
@@ -156,23 +151,23 @@ public class UserService {
 
     // verificar ROLE
     @Transactional
-    public UserResponse deactivate(UUID externalId){
+    public User deactivate(UUID externalId){
         User user = userRepository.findByExternalId(externalId).orElseThrow(UserNotFoundException::new);
 
         if (!user.getActive()) throw new UserAlreadyInactiveException();
         
         user.setActive(false);
-        return mapper.toResponse(userRepository.save(user));
+        return userRepository.save(user);
     }
 
     // verificar ROLE
     @Transactional
-    public UserResponse activate(UUID externalId){
+    public User activate(UUID externalId){
         User user = userRepository.findByExternalId(externalId).orElseThrow(UserNotFoundException::new);
 
         if (user.getActive()) throw new UserAlreadyActiveException();
 
         user.setActive(true);
-        return mapper.toResponse(userRepository.save(user));
+        return userRepository.save(user);
     }
 }
