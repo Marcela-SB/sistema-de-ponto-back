@@ -1,6 +1,7 @@
 package com.deart.sistema_de_ponto_back.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -9,8 +10,8 @@ import com.deart.sistema_de_ponto_back.dtos.requests.UserCreateRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserLoginRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserUpdatePasswordRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserUpdateRequest;
-import com.deart.sistema_de_ponto_back.dtos.responses.LoginResponse;
 import com.deart.sistema_de_ponto_back.exceptions.domain.DepartmentNotFoundException;
+import com.deart.sistema_de_ponto_back.exceptions.domain.InactiveUserException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InvalidCredentialsException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InvalidPasswordException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.UserAlreadyActiveException;
@@ -38,6 +39,11 @@ public class UserService {
         this.mapper = mapper;
     }
 
+    public String cleanCpf(String cpf) {
+        if (cpf == null) return null;
+        return cpf.replaceAll("\\D", "");
+    }
+
     public List<User> findAll(){
         return userRepository.findAll();
     }
@@ -46,9 +52,28 @@ public class UserService {
         return userRepository.findAllByActiveTrue();  
     }
 
+    public User findByExternalId(UUID externalId) {
+        return userRepository.findByExternalId(externalId)
+                .orElseThrow(UserNotFoundException::new);
+    }
+
+    public Optional<User> findByCpf(String cpf) {
+        return userRepository.findByCpf(cleanCpf(cpf));
+    }
+
+    public void validateUserActive(User user, String role){
+        if (!user.getActive()) {
+            if (role == null || role.isBlank()) {
+                throw new InactiveUserException(); 
+            }
+            throw new InactiveUserException(role);
+        }
+    }
+
     // adicionar verificação se está no local presencialmente
     public User login(UserLoginRequest loginRequest){
-        User user = userRepository.findByCpf(loginRequest.cpf())
+        String cleanCpf = cleanCpf(loginRequest.cpf());
+        User user = userRepository.findByCpf(cleanCpf)
             .orElseThrow(UserNotFoundException::new);
 
         // encriptar antes de comparar
@@ -56,14 +81,17 @@ public class UserService {
             throw new InvalidCredentialsException();
         }
 
+        validateUserActive(user, "usuário");
+
         return user;
     }
 
     // Verificar ROLE
     @Transactional
     public User create(UserCreateRequest createRequest){
-        if (userRepository.existsByCpf(createRequest.cpf())) {
-            throw new UserCpfAlreadyExistsException(createRequest.cpf());
+        String cleanCpf = cleanCpf(createRequest.cpf());
+        if (userRepository.existsByCpf(cleanCpf)) {
+            throw new UserCpfAlreadyExistsException(cleanCpf);
         }
         if (userRepository.existsByEmail(createRequest.email())) {
             throw new UserEmailAlreadyExistsException(createRequest.email());
@@ -81,22 +109,38 @@ public class UserService {
     // verificar ROLE (bolsista não pode mudar seu ROLE)
     @Transactional
     public User update(UUID externalId, UserUpdateRequest updateRequest){
-        User user = userRepository.findByExternalIdAndActiveTrue(externalId)
+        User user = userRepository.findByExternalId(externalId)
                 .orElseThrow(UserNotFoundException::new);
 
-        if (userRepository.existsByCpfAndExternalIdNot(updateRequest.cpf(), externalId)) {
-            throw new UserCpfAlreadyExistsException(updateRequest.cpf());
+        validateUserActive(user, "usuário");
+
+        String cleanUpdateCpf = cleanCpf(updateRequest.cpf());
+
+        if (!cleanUpdateCpf.equals(user.getCpf())) {
+            if (userRepository.existsByCpf(cleanUpdateCpf)) {
+                throw new UserCpfAlreadyExistsException(cleanUpdateCpf);
+            }
         }
-        if (userRepository.existsByEmailAndExternalIdNot(updateRequest.email(), externalId)) {
-            throw new UserEmailAlreadyExistsException(updateRequest.email());
+
+        if (!updateRequest.email().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(updateRequest.email())) {
+                throw new UserEmailAlreadyExistsException(updateRequest.email());
+            }
         }
 
         mapper.updateEntityFromRequest(updateRequest, user);
 
-        if (updateRequest.departmentExternalId() != null) {
-            Department dept = departmentRepository.findByExternalId(updateRequest.departmentExternalId())
-                    .orElseThrow(DepartmentNotFoundException::new);
-            user.setDepartment(dept);
+        UUID newDeptId = updateRequest.departmentExternalId();
+        UUID currentDeptId = (user.getDepartment() != null) ? user.getDepartment().getExternalId() : null;
+
+        if (newDeptId != null) {
+            if (!newDeptId.equals(currentDeptId)) {
+                Department dept = departmentRepository.findByExternalId(newDeptId)
+                        .orElseThrow(DepartmentNotFoundException::new);
+                user.setDepartment(dept);
+            }
+        } else {
+            user.setDepartment(null);
         }
 
         return userRepository.save(user);
@@ -109,6 +153,8 @@ public class UserService {
     public void updateEmail(UUID externalId, String newEmail) {
         User user = userRepository.findByExternalId(externalId)
                 .orElseThrow(UserNotFoundException::new);
+
+        validateUserActive(user, "usuário");
 
         if (userRepository.existsByEmailAndExternalIdNot(newEmail, externalId)) {
             throw new UserEmailAlreadyExistsException(newEmail);
@@ -123,8 +169,10 @@ public class UserService {
     // mudar retorno
     @Transactional
     public void updatePassword(UUID externalId, UserUpdatePasswordRequest request) {
-        User user = userRepository.findByExternalIdAndActiveTrue(externalId)
+        User user = userRepository.findByExternalId(externalId)
                 .orElseThrow(UserNotFoundException::new);
+
+        validateUserActive(user, "usuário");
 
         // encriptar antes de comparar
         if (!request.currentPassword().equals(user.getPassword())) {
@@ -138,11 +186,15 @@ public class UserService {
     // mudar retorno
     @Transactional
     public void updateCpf(UUID externalId, String newCpf) {
-        User user = userRepository.findByExternalIdAndActiveTrue(externalId)
+        User user = userRepository.findByExternalId(externalId)
                 .orElseThrow(UserNotFoundException::new);
 
-        if (userRepository.existsByCpfAndExternalIdNot(newCpf, externalId)) {
-            throw new UserCpfAlreadyExistsException(newCpf);
+        validateUserActive(user, "usuário");
+
+        String cleanCpf = cleanCpf(newCpf);
+
+        if (userRepository.existsByCpfAndExternalIdNot(cleanCpf, externalId)) {
+            throw new UserCpfAlreadyExistsException(cleanCpf);
         }
 
         user.setCpf(newCpf); 

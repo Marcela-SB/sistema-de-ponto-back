@@ -30,5 +30,5 @@ public interface UserRepository extends BaseRepository<User, Long> {
 
     boolean existsByCpf(String cpf);
 
-    List<User> findByRole(UserRole role);
+    List<User> findAllByRole(UserRole role);
 }
