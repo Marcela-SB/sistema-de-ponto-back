@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.deart.sistema_de_ponto_back.dtos.requests.DepartmentRequest;
 import com.deart.sistema_de_ponto_back.dtos.responses.DepartmentResponse;
+import com.deart.sistema_de_ponto_back.mappers.DepartmentMapper;
+import com.deart.sistema_de_ponto_back.models.Department;
 import com.deart.sistema_de_ponto_back.services.DepartmentService;
 
 import jakarta.validation.Valid;
@@ -22,33 +24,36 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 
 
-
-
 @RestController
 @RequestMapping("/departments")
 public class DepartmentController {
-    private DepartmentService service;
+    private final DepartmentService service;
+    private final DepartmentMapper mapper;
 
-    public DepartmentController(DepartmentService service){
+    public DepartmentController(DepartmentService service, DepartmentMapper mapper){
         this.service = service;
+        this.mapper = mapper;
     }
 
 
     @GetMapping
     public ResponseEntity<List<DepartmentResponse>> getAllDepartments() {
-        List<DepartmentResponse> departments = service.findAll();
+        List<DepartmentResponse> departments = service.findAll()
+            .stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok().body(departments);
     }
 
     @PostMapping
     public ResponseEntity<DepartmentResponse> createDepartment(@RequestBody @Valid DepartmentRequest request) {
-        DepartmentResponse response = service.create(request);
+        Department entity = service.create(request);
+        DepartmentResponse response = mapper.toResponse(entity);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{externalId}")
-    public ResponseEntity<DepartmentResponse> putMethodName(@PathVariable UUID externalId, @RequestBody @Valid DepartmentRequest request) {
-        DepartmentResponse response = service.update(externalId, request);
+    public ResponseEntity<DepartmentResponse> updateDepartment(@PathVariable UUID externalId, @RequestBody @Valid DepartmentRequest request) {
+        Department entity = service.update(externalId, request);
+        DepartmentResponse response = mapper.toResponse(entity);
         return ResponseEntity.ok().body(response);
     }
     
