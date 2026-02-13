@@ -8,5 +8,5 @@ public record UserResponse(
     String cpf,
     String email,
     String role,
-    String departament
+    String department
 ) {}

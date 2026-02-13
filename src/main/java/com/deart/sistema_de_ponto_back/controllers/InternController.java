@@ -44,7 +44,7 @@ public class InternController {
     }
 
     @GetMapping("/actives")
-    public ResponseEntity<List<InternResponse>> findAllActiveInterns(@RequestParam String param) {
+    public ResponseEntity<List<InternResponse>> findAllActiveInterns() {
         List<InternResponse> interns = service.findAllActives()
             .stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok().body(interns);
@@ -58,7 +58,7 @@ public class InternController {
     }
 
     // verificar ROLE (apenas ADMIN ou SUPERV. responsável)
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<InternResponse> createIntern(@RequestBody InternCreateRequest createRequest) {
         Intern entity = service.create(createRequest);
         InternResponse response = mapper.toResponse(entity);    
@@ -66,7 +66,7 @@ public class InternController {
     }
     
     // verificar ROLE (apenas ADMIN ou SUPERV. responsável)
-    @PutMapping("/upadate/{externalId}")
+    @PutMapping("/update/{externalId}")
     public ResponseEntity<InternResponse> updateIntern(@PathVariable UUID externalId, @RequestBody InternUpdateRequest updateRequest) {
         Intern entity = service.update(externalId, updateRequest);
         InternResponse response = mapper.toResponse(entity);

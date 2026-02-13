@@ -74,14 +74,16 @@ public class UserService {
     public User login(UserLoginRequest loginRequest){
         String cleanCpf = cleanCpf(loginRequest.cpf());
         User user = userRepository.findByCpf(cleanCpf)
-            .orElseThrow(UserNotFoundException::new);
+            .orElseThrow(InvalidCredentialsException::new);
 
         // encriptar antes de comparar
         if (!(user.getPassword().equals(loginRequest.password()))) {
             throw new InvalidCredentialsException();
         }
 
-        validateUserActive(user, "usuário");
+        if (!user.getActive()) {
+            throw new InvalidCredentialsException(); 
+        }
 
         return user;
     }
