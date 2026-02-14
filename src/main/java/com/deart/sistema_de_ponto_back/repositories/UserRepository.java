@@ -4,12 +4,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.stereotype.Repository;
-
 import com.deart.sistema_de_ponto_back.enums.UserRole;
 import com.deart.sistema_de_ponto_back.models.User;
+import com.deart.sistema_de_ponto_back.repositories.base.BaseRepository;
 
-@Repository
 public interface UserRepository extends BaseRepository<User, Long> {
     
     Optional<User> findByExternalIdAndActiveTrue(UUID externalId);

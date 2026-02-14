@@ -1,4 +1,4 @@
-package com.deart.sistema_de_ponto_back.repositories;
+package com.deart.sistema_de_ponto_back.repositories.base;
 
 import java.util.Optional;
 import java.util.UUID;

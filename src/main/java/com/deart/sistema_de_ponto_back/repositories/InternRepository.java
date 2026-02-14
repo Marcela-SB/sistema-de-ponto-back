@@ -2,15 +2,12 @@ package com.deart.sistema_de_ponto_back.repositories;
 
 import com.deart.sistema_de_ponto_back.models.Intern;
 import com.deart.sistema_de_ponto_back.models.User;
+import com.deart.sistema_de_ponto_back.repositories.base.BaseRepository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.stereotype.Repository;
-
-
-@Repository
 public interface InternRepository extends BaseRepository<Intern, Long> {
     
     Optional<Intern> findByEnrollmentNumber(String enrollmentNumber); 
