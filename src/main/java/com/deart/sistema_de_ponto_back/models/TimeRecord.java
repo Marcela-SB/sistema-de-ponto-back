@@ -68,7 +68,7 @@ public class TimeRecord extends AuditableEntity{
     private Duration totalHours;
 
     @OneToMany(mappedBy = "timeRecord", cascade = CascadeType.ALL)
-    private List<TimeRecordObservation> observations = new ArrayList<>();
+    private List<Observation> observations = new ArrayList<>();
 
 
 
