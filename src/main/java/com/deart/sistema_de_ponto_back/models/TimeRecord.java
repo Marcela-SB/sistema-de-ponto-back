@@ -3,6 +3,9 @@ package com.deart.sistema_de_ponto_back.models;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
@@ -17,7 +20,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,8 +57,8 @@ public class TimeRecord extends AuditableEntity{
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     private Duration totalHours;
 
-    @OneToOne(mappedBy = "timeRecord", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private TimeRecordObservation observation;
+    @OneToMany(mappedBy = "timeRecord", cascade = CascadeType.ALL)
+    private List<TimeRecordObservation> observations = new ArrayList<>();
 
 
 
