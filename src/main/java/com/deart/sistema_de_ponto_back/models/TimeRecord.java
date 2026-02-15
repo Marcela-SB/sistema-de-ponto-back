@@ -18,6 +18,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -27,7 +28,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "time_records")
+@Table(name = "time_records", indexes = {
+    // Acelera buscas por um estagiário específico
+    @Index(name = "idx_timerecord_intern", columnList = "intern_id"),
+    
+    // Acelera buscas por data (filtros de hoje, ontem, etc)
+    @Index(name = "idx_timerecord_date", columnList = "record_date"),
+    
+    // O "Super Índice": Acelera a query de um estagiário dentro de um mês (ID + Data)
+    @Index(name = "idx_intern_date_composite", columnList = "intern_id, record_date")
+})
 @Getter
 @Setter
 @NoArgsConstructor
