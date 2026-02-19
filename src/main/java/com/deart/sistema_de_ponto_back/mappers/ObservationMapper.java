@@ -1,20 +1,20 @@
 package com.deart.sistema_de_ponto_back.mappers;
 
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
-
-import com.deart.sistema_de_ponto_back.dtos.requests.ObservationInput;
-import com.deart.sistema_de_ponto_back.dtos.requests.ObservationRequest;
 import com.deart.sistema_de_ponto_back.dtos.responses.ObservationResponse;
 import com.deart.sistema_de_ponto_back.enums.ObservationType;
 import com.deart.sistema_de_ponto_back.models.Observation;
 import com.deart.sistema_de_ponto_back.models.TimeRecord;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+    componentModel = "spring", 
+    imports = { java.time.LocalDateTime.class }
+)
 public interface ObservationMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -37,12 +37,21 @@ public interface ObservationMapper {
 
     @Mapping(target = "externalId", source = "externalId")
     @Mapping(target = "timeRecordExternalId", source = "timeRecord.externalId")
-    @Mapping(target = "lastUpdate", source = "updatedAt", qualifiedByName = "formatDateTime")
+    @Mapping(target = "lastUpdate", expression = "java(resolveLastUpdate(observation))")
     ObservationResponse toResponse(Observation observation);
 
 
-    @Named("formatDateTime")
-    default String formatDateTime(java.time.LocalDateTime dateTime) {
+    default String resolveLastUpdate(Observation observation) {
+        if (observation == null) return null;
+        
+        LocalDateTime dateToFormat = (observation.getUpdatedAt() != null) 
+                ? observation.getUpdatedAt() 
+                : observation.getCreatedAt();
+        
+        return formatDateTime(dateToFormat);
+    }
+
+    default String formatDateTime(LocalDateTime dateTime) {
         if (dateTime == null) return null;
         return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
