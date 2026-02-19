@@ -23,27 +23,39 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "time_records", indexes = {
-    // Acelera buscas por um estagiário específico
-    @Index(name = "idx_timerecord_intern", columnList = "intern_id"),
-    
-    // Acelera buscas por data (filtros de hoje, ontem, etc)
-    @Index(name = "idx_timerecord_date", columnList = "record_date"),
-    
-    // O "Super Índice": Acelera a query de um estagiário dentro de um mês (ID + Data)
-    @Index(name = "idx_intern_date_composite", columnList = "intern_id, record_date")
-})
+@Table(name = "time_records", 
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "records_uk_intern_record_date", 
+            columnNames = {"intern_id", "record_date"}
+        )
+    },
+    indexes = {
+        // Acelera buscas por um estagiário específico
+        @Index(name = "records_idx_timerecord_intern", columnList = "intern_id"),
+        
+        // Acelera buscas por data (filtros de hoje, ontem, etc)
+        @Index(name = "records_idx_timerecord_date", columnList = "record_date"),
+        
+        // O "Super Índice": Acelera a query de um estagiário dentro de um mês (ID + Data)
+        @Index(name = "records_idx_intern_date_composite", columnList = "intern_id, record_date")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class TimeRecord extends AuditableEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -67,7 +79,7 @@ public class TimeRecord extends AuditableEntity{
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     private Duration totalHours;
 
-    @OneToMany(mappedBy = "timeRecord", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "timeRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Observation> observations = new ArrayList<>();
 
 
@@ -76,5 +88,12 @@ public class TimeRecord extends AuditableEntity{
         if (totalHours == null) return "00:00";
         long s = totalHours.abs().getSeconds();
         return String.format("%02d:%02d", s / 3600, (s % 3600) / 60);
+    }
+    
+    public void addObservation(Observation observation) {
+        if (!this.observations.contains(observation)) {
+            this.observations.add(observation);
+            observation.setTimeRecord(this);
+        }
     }
 }

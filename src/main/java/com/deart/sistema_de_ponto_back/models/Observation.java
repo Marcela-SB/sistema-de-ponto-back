@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,15 +23,20 @@ import lombok.Setter;
 @Table(
     name = "observations",
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"time_record_id", "type"})
+        @UniqueConstraint(
+            name = "obs_uk_time_record_type",
+            columnNames = {"time_record_id", "type"}
+        )
     }
 )
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Observation extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
