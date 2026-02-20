@@ -10,7 +10,6 @@ import com.deart.sistema_de_ponto_back.dtos.requests.UserCreateRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserLoginRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserUpdatePasswordRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserUpdateRequest;
-import com.deart.sistema_de_ponto_back.exceptions.domain.DepartmentNotFoundException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InactiveUserException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InvalidCredentialsException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InvalidPasswordException;
@@ -22,19 +21,18 @@ import com.deart.sistema_de_ponto_back.exceptions.domain.UserNotFoundException;
 import com.deart.sistema_de_ponto_back.mappers.UserMapper;
 import com.deart.sistema_de_ponto_back.models.Department;
 import com.deart.sistema_de_ponto_back.models.User;
-import com.deart.sistema_de_ponto_back.repositories.DepartmentRepository;
 import com.deart.sistema_de_ponto_back.repositories.UserRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
-    private final DepartmentRepository departmentRepository;
+    private final DepartmentService departmentService;
     private final UserRepository userRepository;
     private final UserMapper mapper;
 
-    public UserService(DepartmentRepository departmentRepository, UserRepository userRepository, UserMapper mapper){
-        this.departmentRepository = departmentRepository;
+    public UserService(DepartmentService departmentService, UserRepository userRepository, UserMapper mapper){
+        this.departmentService = departmentService;
         this.userRepository = userRepository;
         this.mapper = mapper;
     }
@@ -98,8 +96,7 @@ public class UserService {
         if (userRepository.existsByEmail(createRequest.email())) {
             throw new UserEmailAlreadyExistsException(createRequest.email());
         }
-        Department department = departmentRepository.findByExternalId(createRequest.departmentExternalId())
-            .orElseThrow(DepartmentNotFoundException::new);
+        Department department = departmentService.findByExternalId(createRequest.departmentExternalId());
 
         User user = mapper.toEntity(createRequest);
         user.setDepartment(department);
@@ -137,8 +134,7 @@ public class UserService {
 
         if (newDeptId != null) {
             if (!newDeptId.equals(currentDeptId)) {
-                Department dept = departmentRepository.findByExternalId(newDeptId)
-                        .orElseThrow(DepartmentNotFoundException::new);
+                Department dept = departmentService.findByExternalId(newDeptId);
                 user.setDepartment(dept);
             }
         } else {
