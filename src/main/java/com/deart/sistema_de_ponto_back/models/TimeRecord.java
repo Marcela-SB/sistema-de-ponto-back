@@ -77,17 +77,28 @@ public class TimeRecord extends AuditableEntity{
     //     GENERATED ALWAYS AS (TIMEDIFF(clock_out, clock_in)) STORED;
     @Column(name = "total_hours", insertable = false, updatable = false)
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
-    private Duration totalHours;
+    private LocalTime totalHours;
 
     @OneToMany(mappedBy = "timeRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Observation> observations = new ArrayList<>();
 
 
+    // para situações onde necessita da informação antes do banco retornar o valor
+    public void calculateTotalHours() {
+        if (this.clockIn != null && this.clockOut != null) {
+            Duration duration = Duration.between(this.clockIn, this.clockOut);
+        
+            long seconds = duration.getSeconds();
+            
+            this.totalHours = LocalTime.ofSecondOfDay(Math.max(0, seconds));
+        } else {
+            this.totalHours = null;
+        }
+    }
 
     public String getTotalHoursFormatted() {
-        if (totalHours == null) return "00:00";
-        long s = totalHours.abs().getSeconds();
-        return String.format("%02d:%02d", s / 3600, (s % 3600) / 60);
+        if (totalHours == null) return "--:--";
+        return String.format("%02d:%02d", totalHours.getHour(), totalHours.getMinute());
     }
     
     public void addObservation(Observation observation) {
