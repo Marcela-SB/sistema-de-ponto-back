@@ -9,65 +9,77 @@ import com.deart.sistema_de_ponto_back.dtos.requests.ObservationInput;
 import com.deart.sistema_de_ponto_back.dtos.requests.ObservationRequest;
 import com.deart.sistema_de_ponto_back.enums.ObservationType;
 import com.deart.sistema_de_ponto_back.exceptions.domain.ObservationNotFoundException;
+import com.deart.sistema_de_ponto_back.exceptions.domain.TimeRecordNotFoundException;
 import com.deart.sistema_de_ponto_back.mappers.ObservationMapper;
 import com.deart.sistema_de_ponto_back.models.TimeRecord;
 import com.deart.sistema_de_ponto_back.models.Observation;
 import com.deart.sistema_de_ponto_back.repositories.ObservationRepository;
+import com.deart.sistema_de_ponto_back.repositories.TimeRecordRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ObservationService {
-    private final ObservationRepository repository;
-    private final TimeRecordService timeRecordService;
+    private final ObservationRepository observationRepository;
+    private final TimeRecordRepository recordRepository;
     private final ObservationMapper mapper;
 
-    public ObservationService(ObservationRepository repository, TimeRecordService timeRecordService, ObservationMapper mapper){
-        this.repository = repository;
-        this.timeRecordService = timeRecordService;
+    public ObservationService(ObservationRepository observationRepository, TimeRecordRepository recordRepository, ObservationMapper mapper){
+        this.observationRepository = observationRepository;
+        this.recordRepository = recordRepository;
         this.mapper = mapper;
     }
 
     public List<Observation> findAll(){
-        return repository.findAll();
+        return observationRepository.findAll();
     }
 
     public List<Observation> findAllByTimeRecord(TimeRecord timeRecord){
-        return repository.findAllByTimeRecord(timeRecord);
+        return observationRepository.findAllByTimeRecord(timeRecord);
     }
 
     public List<Observation> findAllByTimeRecordList(List<TimeRecord> timeRecords){
-        return repository.findAllByTimeRecordIn(timeRecords);
+        return observationRepository.findAllByTimeRecordIn(timeRecords);
     }
 
     public Observation findByExternalId(UUID externalId){
-        return repository.findByExternalId(externalId)
+        return observationRepository.findByExternalId(externalId)
             .orElseThrow(ObservationNotFoundException::new);
     }
 
     private Observation persistObservation(TimeRecord record, ObservationType type, String text) {
-        Observation obs = repository.findByTimeRecordAndType(record, type)
-                .map(existingObs -> {
-                    mapper.updateEntityFromText(existingObs, text);
-                    return existingObs;
-                })
-                .orElseGet(() -> 
-                    mapper.toEntity(record, type, text)
-                );
+        Observation obs = record.getObservations().stream()
+                .filter(o -> o.getType().equals(type))
+                .findFirst()
+                .orElseGet(() -> {
+                    Observation newObs = mapper.toEntity(record, type, text);
+                    record.addObservation(newObs);
+                    return newObs;
+                });
 
-        return repository.save(obs);
+        if (!text.equals(obs.getText())) {
+            obs.setText(text);
+        }
+        return obs;
     }
 
-    public Observation processObservationFromRecord(TimeRecord record, ObservationInput input) {
-        return persistObservation(record, input.type(), input.text());
+    @Transactional
+    public Observation processObservationFromRecord(TimeRecord record, ObservationType type, ObservationInput obs) {
+        return persistObservation(record, type, obs.text());
     }
     
+    @Transactional
     public Observation processStandaloneObservation(ObservationRequest request) {
-        TimeRecord record = timeRecordService.findByExternalId(request.timeRecordExternalId());
+        TimeRecord record = recordRepository.findByExternalId(request.timeRecordExternalId())
+                .orElseThrow(TimeRecordNotFoundException::new);
         return persistObservation(record, request.type(), request.text());
     }
 
+    @Transactional
     public void delete(UUID externalId){
         Observation obs = findByExternalId(externalId);
-        repository.delete(obs);
+        TimeRecord record = obs.getTimeRecord();
+        record.getObservations().remove(obs);
     }
 
 }

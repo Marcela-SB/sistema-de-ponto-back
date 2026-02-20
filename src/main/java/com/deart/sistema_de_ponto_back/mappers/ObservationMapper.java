@@ -53,6 +53,6 @@ public interface ObservationMapper {
 
     default String formatDateTime(LocalDateTime dateTime) {
         if (dateTime == null) return null;
-        return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm"));
     }
 }
