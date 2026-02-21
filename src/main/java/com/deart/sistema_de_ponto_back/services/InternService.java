@@ -10,6 +10,7 @@ import com.deart.sistema_de_ponto_back.dtos.requests.InternUpdateRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserCreateRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.UserUpdateRequest;
 import com.deart.sistema_de_ponto_back.enums.UserRole;
+import com.deart.sistema_de_ponto_back.exceptions.domain.InactiveUserException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InternAlreadyExistsException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InternEnrollmentNumberAlreadyExistsException;
 import com.deart.sistema_de_ponto_back.exceptions.domain.InternNotFoundException;
@@ -31,6 +32,11 @@ public class InternService {
         this.internRepository = internRepository;
         this.userService = userService;
         this.internMapper = internMapper;
+    }
+
+    public Intern findByExternalId(UUID externalId){
+        return internRepository.findByExternalId(externalId)
+            .orElseThrow(InternNotFoundException::new);
     }
 
     public List<Intern> findAll(){
@@ -108,5 +114,30 @@ public class InternService {
         intern.setSupervisor(supervisor);
 
         return internRepository.save(intern);
+    }
+
+    /**
+     * Valida se o bolsista está ativo pelo objeto, senão retorna uma exceção.
+     * @param intern Instância de {@link Intern} que se deseja validar.
+     * @throws InactiveUserException
+     */    
+    public void validateInternIsActive(Intern intern) {
+        if (intern.getUser() == null || !intern.getUser().getActive()) {
+            throw new InactiveUserException("Bolsista");
+        }
+    }
+
+    /**
+     * Recupera um bolsista pelo identificador externo e valida se o mesmo está ativo.
+     * 
+     * @param externalId O identificador único (UUID) do bolsista.
+     * @return O objeto {@link Intern} correspondente ao ID fornecido.
+     * @throws InternNotFoundException Caso o bolsista não seja encontrado (o service lança).
+     * @throws InactiveUserException Caso o usuário associado ao bolsista esteja inativo.
+     */
+    public Intern validateAndGetIntern(UUID externalId){
+        Intern intern = findByExternalId(externalId);
+        validateInternIsActive(intern);
+        return intern;
     }
 }
