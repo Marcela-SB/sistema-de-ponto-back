@@ -22,7 +22,7 @@ public interface TimeRecordRepository extends AuditableRepository<TimeRecord>{
     /**
      * Busca um registro de ponto específico de um bolsista em uma determinada data.
      * 
-     * @param externalId O UUID externo do bolsista.
+     * @param externalId O {@code UUID} externo do bolsista.
      * @param recordDate A data do registro buscado.
      * @return Um {@link Optional} contendo o registro de ponto, se encontrado.
      */
@@ -40,9 +40,18 @@ public interface TimeRecordRepository extends AuditableRepository<TimeRecord>{
 
 
     /**
+     * Verifica a existência de um registro de ponto para um bolsista em uma data específica.
+     * @param intern A entidade {@link Intern} associada.
+     * @param recordDate A data do registro buscado.
+     * @return {@code true} se houver um registro para o bolsista na data informada; {@code false} caso contrário.
+     */
+    boolean existsByInternAndRecordDate(Intern intern, LocalDate recordDate);
+
+
+    /**
      * Retorna o histórico completo de registros de ponto de um bolsista.
      * 
-     * @param externalId O UUID externo do bolsista.
+     * @param externalId O {@code UUID} externo do bolsista.
      * @return Lista de {@link TimeRecord} ordenada da data mais recente para a mais antiga.
      */
     @Query("SELECT t FROM TimeRecord t WHERE t.intern.externalId = :id ORDER BY t.recordDate DESC")
@@ -73,7 +82,7 @@ public interface TimeRecordRepository extends AuditableRepository<TimeRecord>{
     /**
      * Busca os registros de ponto de um bolsista específico dentro de um intervalo de datas.
      * 
-     * @param externalId O UUID externo do bolsista.
+     * @param externalId O {@code UUID} externo do bolsista.
      * @param startDate  Data inicial do intervalo.
      * @param endDate    Data final do intervalo.
      * @return Lista de registros do bolsista ordenados cronologicamente.
@@ -86,7 +95,7 @@ public interface TimeRecordRepository extends AuditableRepository<TimeRecord>{
      * Busca registros de ponto de um bolsista específico que ainda não possuem horário de saída registrado.
      * Útil para identificar jornadas em aberto.
      * 
-     * @param externalId O UUID externo do bolsista.
+     * @param externalId O {@code UUID} externo do bolsista.
      * @return Lista de registros onde o {@code clockOut} é nulo.
      */
     @Query("SELECT t FROM TimeRecord t WHERE t.intern.externalId = :id AND t.clockOut IS NULL")
