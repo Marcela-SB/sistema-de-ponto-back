@@ -16,6 +16,8 @@ public interface InternRepository extends BaseRepository<Intern, Long> {
     
     List<Intern> findAllBySupervisorExternalId(UUID externalId);
 
+    Optional<Intern> findByUser(User user);
+
     Optional<Intern> findByUserExternalId(UUID externalId);
 
     List<Intern> findAllByUserActiveTrue();

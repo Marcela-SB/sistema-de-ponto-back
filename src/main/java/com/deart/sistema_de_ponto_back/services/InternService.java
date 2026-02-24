@@ -39,6 +39,12 @@ public class InternService {
             .orElseThrow(InternNotFoundException::new);
     }
 
+    public UUID findInternExternalIdByUser(User user){
+        return internRepository.findByUser(user)
+            .map(Intern::getExternalId)
+            .orElse(null);
+    }
+
     public List<Intern> findAll(){
         return internRepository.findAll();
     }

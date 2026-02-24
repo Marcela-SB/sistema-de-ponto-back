@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record LoginResponse(
     UUID externalId,
+    UUID internExternalId,
     String name,
     String role,
     String token,

@@ -1,5 +1,7 @@
 package com.deart.sistema_de_ponto_back.mappers;
 
+import java.util.UUID;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -30,5 +32,5 @@ public interface UserMapper {
     UserResponse toResponse(User user);
 
     @Mapping(target = "role", source = "user.role.description")
-    LoginResponse toLoginResponse(User user, String token, Long expiresIn);
+    LoginResponse toLoginResponse(User user, UUID internExternalId, String token, Long expiresIn);
 }
