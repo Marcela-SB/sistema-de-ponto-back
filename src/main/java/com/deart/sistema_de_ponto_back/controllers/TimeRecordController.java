@@ -52,7 +52,7 @@ public class TimeRecordController {
     public ResponseEntity<TimeRecordResponse> getToday(@PathVariable UUID externalId) {
         return service.findByInternToday(externalId)
                 .map(record -> ResponseEntity.ok(mapper.toResponse(record)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
     
     @GetMapping("/intern/{externalId}/year")
@@ -74,7 +74,7 @@ public class TimeRecordController {
     }
 
     @PostMapping("/intern/{externalId}")
-    public ResponseEntity<TimeRecordResponse> internPersonalRegister(@PathVariable UUID externalId, @Valid @RequestBody ObservationInput obs) {
+    public ResponseEntity<TimeRecordResponse> internPersonalRegister(@PathVariable UUID externalId, @Valid @RequestBody(required = false) ObservationInput obs) {
         TimeRecord record = service.register(externalId, obs);
         return ResponseEntity.ok(mapper.toResponse(record));
     }
