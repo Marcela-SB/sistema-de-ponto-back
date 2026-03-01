@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.deart.sistema_de_ponto_back.dtos.requests.ObservationInput;
 import com.deart.sistema_de_ponto_back.dtos.requests.TimeRecordManualRequest;
@@ -23,7 +24,6 @@ import com.deart.sistema_de_ponto_back.models.Intern;
 import com.deart.sistema_de_ponto_back.models.TimeRecord;
 import com.deart.sistema_de_ponto_back.repositories.TimeRecordRepository;
 
-import jakarta.transaction.Transactional;
 
 @Service
 public class TimeRecordService {
@@ -146,6 +146,7 @@ public class TimeRecordService {
      * @throws InactiveUserException se o bolsista estiver desativado.
      * @throws DailyWorkdayAlreadyClosedException se o ponto de entrada e saída já estiverem preenchidos.
      */
+    // verificar se o Intern pertence a quem está logado.
     @Transactional
     public TimeRecord register(UUID internExternalId, ObservationInput obs){
         LocalDate today = LocalDate.now();
@@ -257,5 +258,16 @@ public class TimeRecordService {
     public void delete(UUID externalId){
         TimeRecord record = findByExternalId(externalId);
         recordRepository.delete(record);
+    }
+
+
+    /**
+     * Retorna a lista de anos disponíveis para filtro no frontend.
+     * 
+     * @return Lista de anos em ordem decrescente.
+     */
+    @Transactional(readOnly = true)
+    public List<Integer> getAvailableYears() {
+        return recordRepository.findDistinctYears();
     }
 }

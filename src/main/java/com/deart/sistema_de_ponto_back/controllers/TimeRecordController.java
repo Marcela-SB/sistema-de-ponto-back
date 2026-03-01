@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.deart.sistema_de_ponto_back.dtos.requests.ObservationInput;
 import com.deart.sistema_de_ponto_back.dtos.requests.TimeRecordManualRequest;
 import com.deart.sistema_de_ponto_back.dtos.requests.TimeRecordUpdateRequest;
+import com.deart.sistema_de_ponto_back.dtos.responses.AvailableYearsResponse;
 import com.deart.sistema_de_ponto_back.dtos.responses.TimeRecordResponse;
 import com.deart.sistema_de_ponto_back.mappers.TimeRecordMapper;
 import com.deart.sistema_de_ponto_back.models.TimeRecord;
@@ -45,6 +46,13 @@ public class TimeRecordController {
     public ResponseEntity<List<TimeRecordResponse>> getAllToday() {
         List<TimeRecordResponse> responses = service.findAllToday()
                 .stream().map(mapper::toResponse).toList();
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/intern/{externalId}")
+    public ResponseEntity<List<TimeRecordResponse>> findAllByIntern(@PathVariable UUID externalId) {
+        List<TimeRecordResponse> responses = service.findAllByIntern(externalId)
+            .stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(responses);
     }
     
@@ -98,6 +106,12 @@ public class TimeRecordController {
     public ResponseEntity<Void> deleteRecord(@PathVariable UUID externalId) {
         service.delete(externalId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/available-years")
+    public ResponseEntity<AvailableYearsResponse> getYearsWithRecords() {
+        List<Integer> years = service.getAvailableYears();
+        return ResponseEntity.ok(new AvailableYearsResponse(years));
     }
     
 }

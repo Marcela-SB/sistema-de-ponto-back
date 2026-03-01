@@ -100,4 +100,18 @@ public interface TimeRecordRepository extends AuditableRepository<TimeRecord>{
      */
     @Query("SELECT t FROM TimeRecord t WHERE t.intern.externalId = :id AND t.clockOut IS NULL")
     List<TimeRecord> findOpenRecordsByIntern(@Param("id") UUID externalId);
+
+    /**
+     * Recupera uma lista única de todos os anos que possuem registros de ponto.
+     * <p>
+     * Esta consulta utiliza a função escalar {@code YEAR()} do JPQL para extrair 
+     * o ano do campo {@code recordDate}. O uso de {@code DISTINCT} garante que 
+     * não haja duplicatas, ideal para preencher filtros de busca ou dashboards.
+     * </p>
+     * 
+     * @return Uma {@link List} de {@link Integer} contendo os anos em ordem decrescente.
+     * Retorna uma lista vazia caso não existam registros no banco.
+     */
+    @Query("SELECT DISTINCT YEAR(t.recordDate) FROM TimeRecord t ORDER BY YEAR(t.recordDate) DESC")
+    List<Integer> findDistinctYears();
 }
