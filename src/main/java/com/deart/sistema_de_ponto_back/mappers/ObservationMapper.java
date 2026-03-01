@@ -37,6 +37,7 @@ public interface ObservationMapper {
 
     @Mapping(target = "externalId", source = "externalId")
     @Mapping(target = "timeRecordExternalId", source = "timeRecord.externalId")
+    @Mapping(target = "type", source = "type.description")
     @Mapping(target = "lastUpdate", expression = "java(resolveLastUpdate(observation))")
     ObservationResponse toResponse(Observation observation);
 
