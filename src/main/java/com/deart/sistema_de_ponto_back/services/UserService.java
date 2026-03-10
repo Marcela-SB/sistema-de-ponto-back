@@ -1,6 +1,7 @@
 package com.deart.sistema_de_ponto_back.services;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -132,13 +133,9 @@ public class UserService {
         UUID newDeptId = updateRequest.departmentExternalId();
         UUID currentDeptId = (user.getDepartment() != null) ? user.getDepartment().getExternalId() : null;
 
-        if (newDeptId != null) {
-            if (!newDeptId.equals(currentDeptId)) {
+        if (!Objects.equals(newDeptId, currentDeptId)) {
                 Department dept = departmentService.findByExternalId(newDeptId);
                 user.setDepartment(dept);
-            }
-        } else {
-            user.setDepartment(null);
         }
 
         return userRepository.save(user);

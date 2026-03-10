@@ -32,6 +32,7 @@ public class DepartmentService {
     }
 
     public Department findByExternalId(UUID externalId){
+        if (externalId == null) return null;
         return repository.findByExternalId(externalId)
             .orElseThrow(DepartmentNotFoundException::new);
     }
